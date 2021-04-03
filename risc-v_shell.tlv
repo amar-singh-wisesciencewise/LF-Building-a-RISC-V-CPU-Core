@@ -107,17 +107,24 @@
    
    //Register file has been instantiated in the end. connecting RF signals
    //input signals
-   $wr_en = $rd_valid;
+   $wr_en = $rd_valid && ($rd != 0); //rd != 0 is needed as x0 is always 0 in RISC V 
    $wr_index[4:0] = $rd;
-   //$wr_data[31:0] = ;  //ALU output
+   $wr_data[31:0] = $result[31:0];  //ALU output
    $rd_en1 = $rs1_valid;
    $rd_index1[4:0] = $rs1;
    $rd_en2 = $rs2_valid;
    $rd_index2[4:0] = $rs2;
    
    //output signals
-   $src1_value = $rd_data1;
-   $src2_value = $rd_data2;
+   $src1_value[31:0] = $rd_data1[31:0];
+   $src2_value[31:0] = $rd_data2[31:0];
+   
+   //ALU Design
+   $result[31:0] =
+    $is_addi ? $src1_value + $imm :
+    $is_add ? $src1_value + $src2_value : 32'bx; // this default needs to be removed when other commands gets added
+   
+   
    
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
