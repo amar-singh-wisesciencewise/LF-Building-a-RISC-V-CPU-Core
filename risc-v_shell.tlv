@@ -46,6 +46,8 @@
    
    $next_pc[31:0] = $reset ? 'b0 : 
     $taken_br ? $br_tgt_pc[31:0] : 
+    $is_jal ? $br_tgt_pc :
+    $is_jalr ? $jalr_tgt_pc[31:0] :
     $pc + 32'd4 ;
     
    $pc[31:0] = >>1$next_pc;
@@ -200,9 +202,12 @@
     
    $br_tgt_pc[31:0] = $pc + $imm; //used in updating $next_pc if $taken_br is true
    
+   //JALR target PC; used for modifying $next_pc
+   $jalr_tgt_pc[31:0] = $src1_value + $imm ;
+   
    // Assert these to end simulation (before Makerchip cycle limit).
    //*passed = 1'b0;
-   *passed = *cyc_cnt > 58;
+   *passed = *cyc_cnt > 60;
    
    //*failed = *cyc_cnt > M4_MAX_CYC;
    *failed = 1'b0;
