@@ -141,7 +141,7 @@
    //input signals
    $wr_en = $rd_valid && ($rd != 0); //rd != 0 is needed as x0 is always 0 in RISC V 
    $wr_index[4:0] = $rd;
-   $wr_data[31:0] = $result[31:0];  //ALU output
+   //$wr_data[31:0] = $result[31:0];  //ALU output
    $rd1_en = $rs1_valid;
    $rd1_index[4:0] = $rs1;
    $rd2_en = $rs2_valid;
@@ -188,6 +188,8 @@
     $is_slti ? ( ($src1_value[31] == $imm[31]) ? $sltiu_rslt : { 31'b0, $src1_value[31]} ) :
     $is_sra ? $sra_rslt[31:0] :
     $is_srai ? $srai_rslt[31:0] :
+    // For Load and Store
+    ( $is_load | $is_s_instr ) ? $src1_value + $imm :
     32'bx; //default
    
    
@@ -205,6 +207,9 @@
    //JALR target PC; used for modifying $next_pc
    $jalr_tgt_pc[31:0] = $src1_value + $imm ;
    
+   // Register File can be written from $resukt i.e. ALU output or Load data
+   $wr_data[31:0] = $is_load ? $ld_data[31:0] : $result;
+   
    // Assert these to end simulation (before Makerchip cycle limit).
    //*passed = 1'b0;
    *passed = *cyc_cnt > 60;
@@ -214,6 +219,7 @@
    
    m4+rf(32, 32, $reset, $wr_en, $wr_index[4:0], $wr_data[31:0], $rd1_en, $rd1_index[4:0], $rd1_data, $rd2_en, $rd2_index[4:0], $rd2_data)
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
+   m4+dmem(32, 32, $reset, $result[6:2], $is_s_instr, $src2_value, $is_load, $ld_data)
    m4+cpu_viz()
 \SV
    endmodule
